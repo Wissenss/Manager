@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 import sqlite3 
 
 class Database():
@@ -57,7 +58,7 @@ class App():
         add_button.place(x=340, y=60, width=140, height=20)
 
         #clear button
-        clear_button = tk.Button(root, text='clear', command=self.clear_task)
+        clear_button = tk.Button(root, text='Clear', command=self.clear_task)
         clear_button.place(x=340, y=100, width=140, height=20)
 
         #task list
@@ -91,13 +92,14 @@ class App():
         self.task_tree.delete(task)
 
     def clear_task(self):
-        tasks = self.task_tree.get_children()
-        for task in tasks:
-            self.remove_task(task)
-        self.task_id=0
+        if messagebox.askyesno(title='', message='are you sure?'):
+            tasks = self.task_tree.get_children()
+            for task in tasks:
+                self.remove_task(task)
+            self.task_id=0
 
     def remove_task_button(self):
-        #remove tasks from widget
+        #remove all selected tasks from widget
         selected_tasks = self.task_tree.selection()
         for task in selected_tasks:
             self.remove_task(task)
