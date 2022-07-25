@@ -53,8 +53,12 @@ class App():
         add_button.place(x=340, y=20, width=140, height=20)
 
         #remove button
-        add_button = tk.Button(root, text='Remove', command=self.remove_task)
+        add_button = tk.Button(root, text='Remove', command=self.remove_task_button)
         add_button.place(x=340, y=60, width=140, height=20)
+
+        #clear button
+        clear_button = tk.Button(root, text='clear', command=self.clear_task)
+        clear_button.place(x=340, y=100, width=140, height=20)
 
         #task list
         self.task_tree = ttk.Treeview(root)
@@ -81,12 +85,22 @@ class App():
         formated_task = task.replace(' ', '\ ')
         self.task_tree.insert('', index='0', iid=id, text='',  values=formated_task)  
     
-    def remove_task(self):
+    def remove_task(self, task):
+        #remove tasks from widget
+        self.database.remove_record(task)
+        self.task_tree.delete(task)
+
+    def clear_task(self):
+        tasks = self.task_tree.get_children()
+        for task in tasks:
+            self.remove_task(task)
+        self.task_id=0
+
+    def remove_task_button(self):
         #remove tasks from widget
         selected_tasks = self.task_tree.selection()
         for task in selected_tasks:
-            self.database.remove_record(task)
-            self.task_tree.delete(task)
+            self.remove_task(task)
 
     def add_task_button(self):
         #update task counter
