@@ -46,19 +46,34 @@ class App():
         root.geometry('500x380')
 
         #entry 
-        self.task_input = tk.Entry(root)
+        input_style = {
+            'relief' : 'solid',
+            'bd' : 1
+        }
+        self.task_input = tk.Entry(root, **input_style)
         self.task_input.place(x=20, y=20, width = 300, height=20)
 
+        #generic botton style
+        class StyledButton(tk.Button):
+            def __init__(self, *args, **kwargs):
+                if not kwargs:
+                    kwargs = dict()
+                kwargs['relief'] = 'solid'
+                kwargs['activebackground'] = '#202A44'
+                kwargs['activeforeground'] = 'white'
+                kwargs['bd'] = 1
+                super().__init__(*args, **kwargs)
+
         #add button
-        add_button = tk.Button(root, text='Add', command=self.add_task_button)
+        add_button = StyledButton(root, text='Add', command=self.add_task_button)
         add_button.place(x=340, y=20, width=140, height=20)
 
         #remove button
-        add_button = tk.Button(root, text='Remove', command=self.remove_task_button)
+        add_button = StyledButton(root, text='Remove', command=self.remove_task_button)
         add_button.place(x=340, y=60, width=140, height=20)
 
         #clear button
-        clear_button = tk.Button(root, text='Clear', command=self.clear_task)
+        clear_button = StyledButton(root, text='Clear', command=self.clear_task)
         clear_button.place(x=340, y=100, width=140, height=20)
 
         #task list
