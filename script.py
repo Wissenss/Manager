@@ -14,11 +14,12 @@ class Database():
     def tasks_table(self):
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS tasks (
             id integer PRIMARY KEY,
-            name text);""")
+            name text,
+            status text);""")
         self.connection.commit()
 
-    def add_record(self, id, task):
-        self.cursor.execute("INSERT INTO tasks VALUES(?,?)", (id, task))
+    def add_record(self, id, task, status="pending"):
+        self.cursor.execute("INSERT INTO tasks VALUES(?,?,?)", (id, task, status))
         self.connection.commit()
 
     def remove_record(self, id):
@@ -26,8 +27,12 @@ class Database():
         self.connection.commit()
 
     def get_records(self):
-        self.cursor.execute("""SELECT id,name FROM tasks""")
+        self.cursor.execute("""SELECT id,name, status FROM tasks""")
         return self.cursor.fetchall()
+
+    def update_status(self, id, newstatus):
+        self.cursor.execute("""UPDATE tasks SET status = ? WHERE id = ?""", (newstatus, id))
+        self.connection.commit()
 
     def __delf__(self):
         #disconect from database
@@ -83,7 +88,7 @@ class App():
         kwargs = {
         'text': 'Completed', 
         'command': lambda:self.status_button('completed'),
-        'bg': 'green'}
+        'bg': '#68a832'}
         completed_button = StyledButton(root, **kwargs)
         completed_button.place(x=340, y=140, width=140, height=20)
 
@@ -91,7 +96,7 @@ class App():
         kwargs = {
         'text': 'In Progress', 
         'command': lambda:self.status_button('inProgress'),
-        'bg': 'yellow'}
+        'bg': '#ffff45'}
         completed_button = StyledButton(root, **kwargs)
         completed_button.place(x=340, y=180, width=140, height=20)
 
@@ -124,8 +129,8 @@ class App():
         self.task_tree.place(x=20, y=60)
 
         #status tags
-        self.task_tree.tag_configure('completed', background='green')
-        self.task_tree.tag_configure('inProgress', background='yellow')
+        self.task_tree.tag_configure('completed', background='#68a832')
+        self.task_tree.tag_configure('inProgress', background='#ffff45')
         self.task_tree.tag_configure('pending', background='white')
 
         #load saved tasks from database
@@ -138,12 +143,12 @@ class App():
         if tasks:
             self.task_id = tasks[-1][0]+1
             for task in tasks:
-                self.add_task(task[1], task[0])
+                self.add_task(task[1], task[0], task[2])
 
-    def add_task(self, task=None, id=None):
+    def add_task(self, task=None, id=None, status="pending"):
         #display task on widget
         formated_task = task.replace(' ', '\ ')
-        self.task_tree.insert('', index='0', iid=id, text='',  values=formated_task)  
+        self.task_tree.insert('', index='0', iid=id, text='',  values=formated_task, tags=status)  
     
     def remove_task(self, task):
         #remove tasks from widget
@@ -151,7 +156,7 @@ class App():
         self.task_tree.delete(task)
 
     def clear_task(self):
-        if messagebox.askyesno(title='', message='are you sure?'):
+        if messagebox.askyesno(title='Delete all', message='are you sure?'):
             tasks = self.task_tree.get_children()
             for task in tasks:
                 self.remove_task(task)
@@ -160,6 +165,8 @@ class App():
     #style methods
     def change_tag(self, iid, tag):
         self.task_tree.item(iid, tags=tag)
+        #update status in database
+        self.database.update_status(iid, tag)
 
     #button methods/commands
     def status_button(self, tag):
