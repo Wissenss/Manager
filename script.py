@@ -112,13 +112,19 @@ class App():
         completed_button = StyledButton(root, **kwargs)
         completed_button.place(x=340, y=220, width=140, height=20)
 
-        #task list selector
+        #list settings button
+        kwargs = {
+        'text': 'Settings', 
+        'command': self.list_settings_button,
+        'bg': 'white'}
+        completed_button = StyledButton(root, **kwargs)
+        completed_button.place(x=340, y=260, width=140, height=20)
+
+        #recode this when u have the time, it aint too elegant
         self.tasks_list = self.database.get_tables()
         #['default', 'second tasks', 'third tasks']
         self.current_task_list = tk.StringVar(root)
         self.current_task_list.set(self.tasks_list[0][0])
-        task_selector = tk.OptionMenu(root, self.current_task_list, *self.tasks_list)
-        task_selector.place(x=20, y=60, width=300, height=20)
 
         #task list
         #configure Treeview
@@ -138,7 +144,7 @@ class App():
         self.task_tree.column("Task", width=300)
         self.task_tree.heading("Task", text="Tasks")
 
-        self.task_tree.place(x=20, y=80)
+        self.task_tree.place(x=20, y=60)
 
         #status tags
         self.task_tree.tag_configure('completed', background='#68a832')
@@ -217,6 +223,9 @@ class App():
         #clear entry
         self.task_input.delete(0, 'end')
 
+    def list_settings_button(self):
+        menu = Select_list_menu(self)
+
     #experiments
     def entered(self, key):
         if key.char =='\n':
@@ -235,6 +244,7 @@ class Select_list_menu():
 
         #config menu window
         self.menu.title('Load List')
+        self.menu.iconbitmap('icon.ico')
         self.menu.geometry("250x300")
 
         #dropdown tasks list
@@ -276,8 +286,16 @@ class Select_list_menu():
     def __delf__(self):
         pass
 
-main_window = App()
-Select_list_menu(main_window)
+"""
+#task list selector
+        self.tasks_list = self.database.get_tables()
+        #['default', 'second tasks', 'third tasks']
+        self.current_task_list = tk.StringVar(root)
+        self.current_task_list.set(self.tasks_list[0][0])
+        task_selector = tk.OptionMenu(root, self.current_task_list, *self.tasks_list)
+        task_selector.place(x=20, y=60, width=300, height=20)
+"""
 
+App()
 
 root.mainloop()
