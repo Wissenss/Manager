@@ -1,8 +1,8 @@
 # Manager
-A clasic desktop application task manager.
+A classic desktop application task manager.
 
 ## Description
-Manager is a simple desktop application that allows you to store and switch bettwen different lists of tasks, set each task progress status and open many tabs as nedded.
+Manager is a simple desktop application that allows you to store and switch bettwen different lists of tasks, set each task progress status and open many tabs as needed.
 
 ![image](https://user-images.githubusercontent.com/66654885/183216706-9f07b7e5-0c00-4d81-baf9-d145f2f07268.png)
 
