@@ -1,53 +1,21 @@
+#built-in imports
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-import sqlite3 
 
-class Database():
-    def __init__(self):
-        #connect to database
-        self.connection = sqlite3.connect('database.db')
-        self.cursor = self.connection.cursor()
-
-        self.tasks_table()
-
-    def tasks_table(self, name='tasks'):
-        self.cursor.execute(f"""CREATE TABLE IF NOT EXISTS {name} (
-            id integer PRIMARY KEY,
-            name text,
-            status text);""")
-        self.connection.commit()
-
-    def add_record(self, id, task, status="pending"):
-        self.cursor.execute("INSERT INTO tasks VALUES(?,?,?)", (id, task, status))
-        self.connection.commit()
-
-    def remove_record(self, id):
-        self.cursor.execute(f"DELETE FROM tasks WHERE id={id}")
-        self.connection.commit()
-
-    def get_records(self, name="tasks"):
-        self.cursor.execute(f"""SELECT id,name, status FROM {name}""")
-        return self.cursor.fetchall()
-
-    def get_tables(self):
-        self.cursor.execute("""SELECT name from sqlite_master where type='table'""")
-        return self.cursor.fetchall()
-
-    def update_status(self, id, newstatus):
-        self.cursor.execute("""UPDATE tasks SET status = ? WHERE id = ?""", (newstatus, id))
-        self.connection.commit()
-
-    def __delf__(self):
-        #disconect from database
-        self.connection.close()
-
-root = tk.Tk()
+#local/relative imports
+import database
+import styled_button
+import settings_menu
 
 class App():
     def __init__(self):
+        #create window
+        root = tk.Tk()
+        self.window = root
+
         #connecting to database
-        self.database = Database()
+        self.database = database.Database()
 
         #window setup
         root.title('Manager')
@@ -62,29 +30,17 @@ class App():
         self.task_input = tk.Entry(root, **input_style)
         self.task_input.place(x=20, y=20, width = 300, height=20)
 
-        #generic botton style
-        class StyledButton(tk.Button):
-            def __init__(self, *args, **kwargs):
-                if not kwargs:
-                    kwargs = dict()
-                kwargs['relief'] = 'solid'
-                #if not 'activebackground' in kwargs:
-                kwargs['activebackground'] = '#202A44'
-                kwargs['activeforeground'] = 'white'
-                kwargs['bd'] = 1
-                super().__init__(*args, **kwargs)
-
         ##managment buttons
         #add button
-        add_button = StyledButton(root, text='Add', command=self.add_task_button)
+        add_button = styled_button.StyledButton(root, text='Add', command=self.add_task_button)
         add_button.place(x=340, y=20, width=140, height=20)
 
         #remove button
-        add_button = StyledButton(root, text='Remove', command=self.remove_task_button)
+        add_button = styled_button.StyledButton(root, text='Remove', command=self.remove_task_button)
         add_button.place(x=340, y=60, width=140, height=20)
 
         #clear button
-        clear_button = StyledButton(root, text='Clear', command=self.clear_task)
+        clear_button = styled_button.StyledButton(root, text='Clear', command=self.clear_task)
         clear_button.place(x=340, y=100, width=140, height=20)
 
         ##status buttons
@@ -93,7 +49,7 @@ class App():
         'text': 'Completed', 
         'command': lambda:self.status_button('completed'),
         'bg': '#68a832'}
-        completed_button = StyledButton(root, **kwargs)
+        completed_button = styled_button.StyledButton(root, **kwargs)
         completed_button.place(x=340, y=140, width=140, height=20)
 
         #in progress button
@@ -101,7 +57,7 @@ class App():
         'text': 'In Progress', 
         'command': lambda:self.status_button('inProgress'),
         'bg': '#ffff45'}
-        completed_button = StyledButton(root, **kwargs)
+        completed_button = styled_button.StyledButton(root, **kwargs)
         completed_button.place(x=340, y=180, width=140, height=20)
 
         #pending button
@@ -109,7 +65,7 @@ class App():
         'text': 'Pending', 
         'command': lambda:self.status_button('pending'),
         'bg': 'white'}
-        completed_button = StyledButton(root, **kwargs)
+        completed_button = styled_button.StyledButton(root, **kwargs)
         completed_button.place(x=340, y=220, width=140, height=20)
 
         #list settings button
@@ -117,12 +73,11 @@ class App():
         'text': 'Settings', 
         'command': self.list_settings_button,
         'bg': 'white'}
-        completed_button = StyledButton(root, **kwargs)
+        completed_button = styled_button.StyledButton(root, **kwargs)
         completed_button.place(x=340, y=260, width=140, height=20)
 
         #recode this when u have the time, it aint too elegant
         self.tasks_list = self.database.get_tables()
-        #['default', 'second tasks', 'third tasks']
         self.current_task_list = tk.StringVar(root)
         self.current_task_list.set(self.tasks_list[0][0])
 
@@ -154,6 +109,8 @@ class App():
         #load saved tasks from database
         self.task_id = 0
         self.load_tasks(self.current_task_list.get())
+
+        root.mainloop()
 
     #managment methods
     def load_tasks(self, name):
@@ -224,78 +181,6 @@ class App():
         self.task_input.delete(0, 'end')
 
     def list_settings_button(self):
-        menu = Select_list_menu(self)
-
-    #experiments
-    def entered(self, key):
-        if key.char =='\n':
-            pass
-        else:
-            pass
-
-class Select_list_menu():
-    def __init__(self, main_window):
-        #save root database
-        self.database = main_window.database
-        self.main_window = main_window
-
-        #create menu window
-        self.menu = tk.Toplevel(root)
-
-        #config menu window
-        self.menu.title('Load List')
-        self.menu.iconbitmap('icon.ico')
-        self.menu.geometry("250x300")
-
-        #dropdown tasks list
-        self.selected_list = tk.StringVar()
-        self.selected_list.set(main_window.current_task_list.get())
-        self.list = tk.OptionMenu(self.menu, self.selected_list, self.database.get_tables())
-        self.list.place(x=20, y=20, height=20, width=210)
-
-        #load button
-        load_button = tk.Button(self.menu, text="Load", command=self.load_button)
-        load_button.place(x=20, y=60, height=20, width=210)
-
-        #change name button
-        changeName_button = tk.Button(self.menu, text="Change Name", command=self.changeName_button)
-        changeName_button.place(x=20, y=100, height=20, width=210)
-
-        #create new list button
-        newList_button = tk.Button(self.menu, text="Create New", command=self.addList_button)
-        newList_button.place(x=20, y=140, height=20, width=210)
-
-        #remove list button
-        removeList_button = tk.Button(self.menu, text="Delete Current", command=self.removeList_button)
-        removeList_button.place(x=20, y=180, height=20, width=210)
-
-    def load_button(self):
-        self.main_windowk.load_tasks(self.selected_list.get())
-        self.delf()
-
-    def addList_button(self):
-        name = 'test new table'
-        self.database.tasks_table(name)
-
-    def changeName_button(self):
-        pass
-
-    def removeList_button(self):
-        pass
-
-    def __delf__(self):
-        pass
-
-"""
-#task list selector
-        self.tasks_list = self.database.get_tables()
-        #['default', 'second tasks', 'third tasks']
-        self.current_task_list = tk.StringVar(root)
-        self.current_task_list.set(self.tasks_list[0][0])
-        task_selector = tk.OptionMenu(root, self.current_task_list, *self.tasks_list)
-        task_selector.place(x=20, y=60, width=300, height=20)
-"""
+        menu = settings_menu.SettingsMenu(self)
 
 App()
-
-root.mainloop()
